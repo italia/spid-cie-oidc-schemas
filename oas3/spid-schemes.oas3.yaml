@@ -46,6 +46,16 @@ components:
     All:
       anyOf:
       - $ref: '#/components/schemas/TrustMark'
+    URL: &URL
+      type: string
+      format: url
+      maxLength: 4096
+      minLength: 12
+    Issuer: &iss
+      <<: *URL
+      externalDocs:
+        url: https://tools.ietf.org/html/rfc7519#section-4.1.6
+
     TrustMark:
       type: object
       additionalProperties: false
@@ -65,17 +75,11 @@ components:
       - service_documentation
       properties:
         iss:
+          <<: *iss
           description: URL che identifica univocamente l’emittente del  trust mark (SGD-AA. o SA abilitati) 
-          type: string
-          format: url
-          maxLength: 4096
-          minLength: 12
         sub:
           description: URL che identifica univocamente l’ente/organizzazione che intende aderire al SGD
-          type: string
-          format: url
-          maxLength: 4096
-          minLength: 12
+          <<: *URL
         id: 
           description: |-
             Identificativo univoco del trust mark secondo la struttura seguente: https://deleghedigitali.gov.it /<ENTITY_TYPE>/sgd
