@@ -1,0 +1,163 @@
+openapi: 3.0.1
+info:
+  title: SDG OAuth
+  version: 1.1.0
+  description: SDG OAuth
+  termsOfService: https://sdg-oauth.github.io/sdg-oauth/
+  contact:
+    name: SDG OAuth
+    url: https://sdg-oauth.github.io/sdg-oauth/
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+  x-rendering-tool: |-
+    # esempio script python per renderizzare le informazioni di cui sotto
+    import yaml
+    from pathlib import Path
+    import pandas as pd
+
+
+    def tabellizza(schema_content):
+      lines = []
+      for field, values in schema_content["properties"].items():
+        required = "OBBLIGATORIO" if field in schema_content.get("required", []) else "OPZIONALE"
+        reference = values["externalDocs"]["url"] if "externalDocs" in values else ""
+        lines.append ((field,
+              "JSON " + values["type"].capitalize(),
+              required + " " + values["description"],
+            reference))
+      return lines
+
+    def test_tabellizza():
+      schema = yaml.safe_load(Path("sdg-oauth-v1.1.yaml").read_text())
+      for schema_name, schema_content in schema["components"]["schemas"].items():
+        if "properties" not in schema_content:
+          continue
+        lines = tabellizza(schema_content)
+        df= pd.DataFrame(lines, columns=['Claim', 'Type', 'Description', 'Reference'])
+        df.to_excel("spid-sdg.xls")
+ 
+
+servers: []
+tags: [ ]
+paths: {}
+components:
+  schemas:
+    All:
+      anyOf:
+      - $ref: '#/components/schemas/TrustMark'
+    TrustMark:
+      type: object
+      additionalProperties: false
+      description: |-
+        Un trust mark relativo al profilo sgd
+        e conforme a JWT BCP RFC8152.
+      required:
+      - iss
+      - sub
+      - id
+      - iat
+      - exp
+      - organization_name
+      - organization_type
+      - id_code
+      - email
+      - service_documentation
+      properties:
+        iss:
+          description: URL che identifica univocamente l’emittente del  trust mark (SGD-AA. o SA abilitati) 
+          type: string
+          format: url
+          maxLength: 4096
+          minLength: 12
+        sub:
+          description: URL che identifica univocamente l’ente/organizzazione che intende aderire al SGD
+          type: string
+          format: url
+          maxLength: 4096
+          minLength: 12
+        id: 
+          description: |-
+            Identificativo univoco del trust mark secondo la struttura seguente: https://deleghedigitali.gov.it /<ENTITY_TYPE>/sgd
+          type: string
+          format: url
+          maxLength: 4096
+          minLength: 12
+        iat:
+          description: Timestamp di emissione del trust mark espresso come “Seconds Since the Epoch” 
+          type: integer
+          format: int64
+          externalDocs:
+            url: https://tools.ietf.org/html/rfc7519#section-4.1.6
+        exp:
+          description: Timestamp dopo il quale il trust mark non è più valido, espresso come “Seconds Since the Epoch” [RFC7519]. In caso di omissione, il trust mark si intende valido per sempre.
+          type: integer
+          format: int64
+          externalDocs:
+            url: https://tools.ietf.org/html/rfc7519#section-4.1.4
+
+        ref:
+          description: URL dove è disponibile il riferimento al manuale operativo SGD [SGD-MANUALE].
+          type: string
+          format: url
+          maxLength: 4096
+          minLength: 12
+        logo_uri:
+          type: string
+          format: url
+          maxLength: 4096
+          minLength: 12
+          description: |-
+            OPZIONALE. URL dove è disponibile l’immagine del logo dell’ente/organizzazione che intende aderire al SGD in un formato SVG. 
+        organization_name:     
+          type: string
+          format: url
+          maxLength: 4096
+          minLength: 12
+          description: |-
+            OBBLIGATORIO. Denominazione completa dell’ente/organizzazione che intende aderire al SGD
+        organization_type:     
+          type: string
+          format: url
+          maxLength: 4096
+          minLength: 12
+          description: |-
+            OBBLIGATORIO. Indica se l’ente/organizzazione identificata nel parametro sub afferisce alla pubblica amministrazione o al settore privato. I valori supportati sono public o private
+        id_code:               
+          type: string
+          format: url
+          maxLength: 4096
+          minLength: 12
+          description: |-
+            OBBLIGATORIO. Codice di identificazione dell’ente/organizzazione identificata nel parametro sub,
+             valorizzato con il codice IPA nel caso afferente alla PA, con la partita IVA o codice fiscale nel caso afferente al settore privato
+        email:                 
+          type: string
+          format: url
+          maxLength: 4096
+          minLength: 12
+          description: |-
+            OBBLIGATORIO. Indirizzo e-mail istituzionale o PEC dell’ente/organizzazione che intende aderire al SGD
+        policy_uri:            
+          type: string
+          format: url
+          maxLength: 4096
+          minLength: 12
+          description: |-
+            OPZIONALE. URL dove è disponibile la privacy policy dell’ente/organizzazione che intende aderire al SGD. 
+            Può essere presente più di una occorrenza opportunamente localizzata in più lingue. DEVE essere presente almeno il valore localizzato nella lingua italiana (policy_uri#it) [OIDC-REGISTRATION#Section2.1], [OIDC-CORE#Section5.2]. 
+        tos_uri:               
+          type: string
+          format: url
+          maxLength: 4096
+          minLength: 12
+          description: |-
+            OPZIONALE. URL dove è disponibile la info policy dell’ente/organizzazione che intende aderire al SGD.
+             Può essere presente più di una occorrenza opportunamente localizzata in più lingue. DEVE essere presente almeno il valore localizzato nella lingua italiana (tos_uri#it) [OIDC-REGISTRATION#Section2.1],[OIDC-CORE#Section5.2].
+        service_documentation: 
+          type: string
+          format: url
+          maxLength: 4096
+          minLength: 12
+          description: |-
+            OBBLIGATORIO, solo nel caso di RP ("id":https://deleghedigitali.gov.it/openid_relying_party/sgd). URL dove è disponibile il catalogo OAS3 dei servizi resi delegabili dal RP. Nel caso di SA tale parametro è da considerarsi non applicabile.
