@@ -1,0 +1,577 @@
+openapi: 3.0.3
+info:
+  title: API Sistema Gestione Deleghe (SGD)
+  version: "1.0.0"
+  description: This document contains the specification for the SGD API
+  termsOfService: https://deleghedigitali.gov.it/tos
+  contact:
+    name: Istituto Poligrafico e Zecca dello Stato (IPZS)
+    url: https://deleghedigitali.gov.it
+    email: tech@deleghedigitali.gov.it
+  x-spid:
+    aa-home: https://deleghedigitali.gov.it/api/v1.0.0/
+    aa-registry: https://registry.spid.gov.it/metadata/aa/sgd.json
+    aa-version: 1.0.0
+    aa-required-attributes: [fiscalNumber]
+    aa-lookup-attribute: fiscalNumber
+  x-api-id: 123
+  x-summary: A subtitle for the catalog
+servers:
+  - url: https://deleghedigitali.gov.it/api/v1
+    description: fdsfs
+
+paths:
+  /status:
+    get:
+      operationId: get-status
+      description: fdfd
+      summary: fdfd
+      responses:
+        "200":
+          description: ok
+          content:
+            application/problem+json:
+              schema:
+                type: string
+      tags:
+        - public
+  /versioning:
+    #TODO: Maybe a pagination could be useful for this path
+    get:
+      operationId: get-versioning
+      summary: Returns the list of all available versions of the API
+      description: fdsfsd
+      responses:
+        "200":
+          description: Ok
+          content:
+            text/html:
+              schema:
+                type: string
+            application/json:
+              schema:
+                type: object
+                description:
+                  "JSON Object containing the list of all available versions of
+                  this API."
+                properties:
+                  versions_list:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        iat:
+                          type: string
+                          description:
+                            UNIX timestamp of when this version was released
+                        version:
+                          type: string
+                          description:
+                            Version identifier of API given in the format
+                            'v<MAJOR.MINOR.PATCH>'
+                      required:
+                        - iat
+                        - version
+        "404":
+          $ref: "#/components/responses/404"
+        "500":
+          $ref: "#/components/responses/500"
+      tags:
+        - public
+      x-spid-operation: # See §2.8
+        consentRequired: "N"
+        offlineAccess: true
+        offlineAccessDurationMax: 8640000
+  /latest:
+    get:
+      operationId: get-latest
+      summary: Returns the document describing the latest version of the API
+      responses:
+        "302":
+          description: Ok
+          headers:
+            location:
+              schema:
+                type: string
+              description:
+                URL where the latest version is located
+                ('https://deleghedigitali.gov.it/api/v<LATEST_VERSION>')
+        "404":
+          $ref: "#/components/responses/404"
+        "500":
+          $ref: "#/components/responses/500"
+      tags:
+        - public
+      x-spid-operation: # See §2.8
+        consentRequired: "N"
+        offlineAccess: true
+        offlineAccessDurationMax: 8640000
+  /v1:
+    get:
+      operationId: get-version
+      summary: Returns the document describing this version of the API.
+      responses:
+        "200":
+          description: Ok
+          content:
+            text/html:
+              schema:
+                type: string
+        "404":
+          $ref: "#/components/responses/404"
+        "500":
+          $ref: "#/components/responses/500"
+      tags:
+        - public
+      x-spid-operation: # See §2.8
+        consentRequired: "N"
+        offlineAccess: true
+        offlineAccessDurationMax: 8640000
+
+  /tos:
+    get:
+      description: fdfd
+      operationId: get-tos
+      summary:
+        Returns the document with the terms and conditions related to this
+        system
+      responses:
+        "200":
+          description: Ok
+          content:
+            text/html:
+              schema:
+                type: string
+                description: HTML page with the Terms of Service
+        "404":
+          $ref: "#/components/responses/404"
+      tags:
+        - public
+      x-spid-operation: # See §2.8
+        consentRequired: "N"
+        offlineAccess: true
+        offlineAccessDurationMax: 8640000
+
+  /delegation/list:
+    get:
+      operationId: get-delegation
+      summary:
+        Returns the list of the delegations related to the services (or class of
+        services) provided by the authenticated RP and having the current user
+        as delegator
+      security:
+        - dpopToken: []
+          dpopProof: []
+      parameters:
+        - name: DPoP
+          in: header
+          required: true
+          description: DPoP proof
+          schema:
+            "$ref": "#/components/schemas/DPoP"
+      x-spid-operation: # See §2.8
+        consentRequired: "SP"
+        spidLevel: SPID2
+        offlineAccess: false
+        offlineAccessDurationMax: 0
+      tags:
+        - protected
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DelegationList"
+              example:
+                delegation_list:
+                  - id: 1A00001AA21
+                    https://attributes.eid.gov.it/fiscal_number: TINIT-RSSMR*********I
+                  - id: 1A00002AA21
+                    https://attributes.eid.gov.it/fiscal_number: TINIT-ABCXX*********Z
+                  - id: 1A00004AA21
+                    https://attributes.eid.gov.it/fiscal_number: TINIT-DEFYY*********W
+        "401":
+          $ref: "#/components/responses/401"
+        "404":
+          $ref: "#/components/responses/404"
+          #The requested service (or class of services) does not exist
+        "429":
+          $ref: "#/components/responses/429"
+        "500":
+          $ref: "#/components/responses/500"
+
+  /delegation/list/{service}:
+    get:
+      description: fdfd
+      operationId: get-delgation-service
+      summary:
+        "Returns the list of the delegations having the current user as
+        delegator and related to the services (or class of services) provided by
+        the authenticated RP and identifed from the service component in the URL"
+      security:
+        - dpopToken: []
+          dpopProof: []
+      x-spid-operation: # See §2.8
+        consentRequired: "SP"
+        spidLevel: SPID2
+        offlineAccess: false
+        offlineAccessDurationMax: 0
+      tags:
+        - protected
+      parameters:
+        - in: path
+          name: service
+          required: true
+          schema:
+            type: string
+          description:
+            Identifier of the service (or class of services) as given in the
+            online OAS3 catalog of delegable services provided by the
+            authenticated RP. It must be a UUID v4 identifier.
+          example: 21905575-991a-43d5-bede-25f59ae93373
+        - name: DPoP
+          in: header
+          required: true
+          description: DPoP proof
+          schema:
+            "$ref": "#/components/schemas/DPoP"
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DelegationList"
+              example:
+                delegation_list:
+                  - id: 1A00001AA21
+                    https://attributes.eid.gov.it/fiscal_number: TINIT-RSSMR*********I
+                  - id: 1A00002AA21
+                    https://attributes.eid.gov.it/fiscal_number: TINIT-ABCXX*********Z
+        "400":
+          $ref: "#/components/responses/400"
+        "401":
+          $ref: "#/components/responses/401"
+        "404":
+          $ref: "#/components/responses/404"
+        "429":
+          $ref: "#/components/responses/429"
+        "500":
+          $ref: "#/components/responses/500"
+
+  /delegation/get/{id}:
+    get:
+      operationId: get-delegation-id
+      summary: "
+        Returns the attributes related to the delegation identified by the
+        delegation_id component of the URL
+        "
+      security:
+        - dpopToken: []
+          dpopProof: []
+      x-spid-operation: # See §2.8
+        consentRequired: "SP"
+        spidLevel: SPID2
+        offlineAccess: false
+        offlineAccessDurationMax: 0
+      tags:
+        - protected
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Identitier of this delegation as defined by SGD
+        - name: DPoP
+          in: header
+          required: true
+          description: DPoP proof
+          schema:
+            "$ref": "#/components/schemas/DPoP"
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/jwt:
+              schema:
+                $ref: "#/components/schemas/DelegationAttribute"
+              example:
+                header:
+                  alg: "RS256"
+                  kid: "WTNFc0JtSEg2dmptZUdrRHNUVlFJSHV2azZsNFhLY3hQZE5wYV9TanprSQ"
+                  typ: "JWT"
+                body:
+                  id: "1A00001AA21"
+                  iss: "https://deleghedigitali.gov.it/"
+                  sub: "TINIT-RSSMRA70A0H501I"
+                  iat: "1650575048"
+                  jti: "2bcbb3b9-cb5b-4ff7-81b0-3da894dd8c62"
+                  given_name: "ALESSANDRO"
+                  family_name: "BIANCHI"
+                  https://attributes.eid.gov.it/fiscal_number: "TINIT-BNCLSN71H10H501B"
+                  birthdate: "01/01/1980"
+                  email: "a.bianchi@email.com"
+                  phone_number: "+391234567890"
+                  https://sgd.gov.it/delegation_iat: "1650573248"
+                  https://sgd.gov.it/delegation_nbf: "1650573248"
+                  https://sgd.gov.it/delegation_exp: "1650576848"
+                  https://sgd.gov.it/delegation_los:
+                    - "18971e49-3c04-4e97-8344-02c01aeee936"
+                    - "2fef181-0ae8-4c93-9daa-0cab2b5c0f7e"
+        "400":
+          $ref: "#/components/responses/400"
+        "401":
+          $ref: "#/components/responses/401"
+        "404":
+          $ref: "#/components/responses/404"
+        "429":
+          $ref: "#/components/responses/429"
+        "500":
+          $ref: "#/components/responses/500"
+
+components:
+  securitySchemes:
+    dpopToken:
+      type: http
+      scheme: DPoP
+    dpopProof:
+      type: apiKey
+      in: header
+      name: DPoP
+    DPoP-AccessToken:
+      type: http
+      bearerFormat: DPoP
+      scheme: bearer
+      description:
+        "DPoP-bound Access Token releases by the STS endpoint of SGD during the
+        Token Exchange OAuth2 protocol"
+  responses:
+    "400":
+      description: Bad request.
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Errors"
+          example:
+            error: "invalid_request"
+            error_description:
+              The request is malformed, a required parameter is missing or a
+              parameter has an invalid value.
+    "401":
+      description:
+        The client request has not been completed because it lacks valid
+        authorization credentials for the requested resource.
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Errors"
+          example:
+            error: "invalid_client"
+            error_description:
+              The client request has not been completed because it lacks valid
+              authorization credentials for the requested resource.
+    "404":
+      description: The requested resource was not found
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Errors"
+          example:
+            error: "not_found"
+            error_description: The requested resource was not found
+    "429":
+      description: Too Many Requests
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Errors"
+          example:
+            error: "too_many_requests"
+            error_description:
+              The rate limit was exceeded and access is temporarily blocked. It
+              is allowed max 50 requests per hour.
+    "500":
+      description: Internal server error.
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Errors"
+          example:
+            error: "temporarily_unavailable"
+            error_description:
+              The server is currently unable to handle the request due to
+              maintenance or temporary overload.
+  schemas:
+    Authorization:
+      type: string
+      example: DPoP Kz~8mXK1EalYznwH-LC-1fBAo.4Ljp~zsPE_NeO.gxU
+    DPoP:
+      type: string
+      example:
+        "eyJ0eXAiOiJkcG9wK2p3dCIsImFsZyI6IkVTMjU2IiwiandrIjp7Imt0eSI6IkVDIiwieCI6Imw4dEZyaHgtMzR0VjNoUklDUkRZOXpDa0RscEJoRjQyVVFVZldWQVdCRnMiLCJ5IjoiOVZFNGpmX09rX282NHpiVFRsY3VOSmFqSG10NnY5VERWclUwQ2R2R1JEQSIsImNydiI6IlAtMjU2In19.eyJqdGkiOiJlMWozVl9iS2ljOC1MQUVCIiwiaHRtIj      oiR0VUIiwiaHR1IjoiaHR0cHM6Ly9yZXNvdXJjZS5leGFtcGxlLm9yZy9wcm90ZWN0Z      WRyZXNvdXJjZSIsImlhdCI6MTU2MjI2MjYxOCwiYXRoIjoiZlVIeU8ycjJaM0RaNTNFc05yV0JiMHhXWG9hTnk1OUlpS0NBcWtzbVFFbyJ9.2oW9RP35yRqzhrtNP86L-Ey71E    OptxRimPPToA1plemAgR6pxHF8y6-yqyVnmcw6Fy1dqd-jfxSYoMxhAJpLjA"
+    DelegationList:
+      type: object
+      description:
+        "JSON Object containing the delegation list. Each delegation is
+        identified by the parameter id and the related fiscal number of
+        delegating is given partially hidden for privacy reason"
+      properties:
+        delegation_list:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                description: Identitier of this delegation
+              https://attributes.eid.gov.it/fiscal_number:
+                type: string
+                description:
+                  Fiscal number of the delegating subject partially hidden
+                  preceded by the prefix TINIT-
+            required:
+              - id
+              - https://attributes.eid.gov.it/fiscal_number
+    DelegationAttribute:
+      type: object
+      description:
+        'JWT Object representing the "delegation-attribute", containing the
+        identifying information about the delegated and delegating subjects and
+        the characteristics of the delegation. It is transmitted in the standard
+        format (as a base64_url encoded string)'
+      properties:
+        header:
+          type: object
+          properties:
+            alg:
+              type: string
+              description: The algorithm used to sign the JWT
+              enum:
+                - "RS256"
+                - "RS384"
+                - "RS512"
+                - "ES256"
+                - "ES384"
+                - "ES512"
+              default: RS256
+            kid:
+              type: string
+              description: Identifier of the key used to sign this JWT
+            typ:
+              type: string
+              description: Identifier of the type of token
+              default: "JWT"
+          required:
+            - alg
+            - kid
+        body:
+          type: object
+          properties:
+            jti:
+              type: string
+              description: Identifier of this token
+            iat:
+              type: string
+              description: UNIX timestamp of when this token was created
+            iss:
+              type: string
+              description: Identifier of the entity which issued this token
+              default: https://deleghedigitali.it/
+            sub:
+              type: string
+              description:
+                Delegate User Identifier. Contains the fiscal number of the
+                delegate holder of the delegation preceded by the prefix TIN
+                followed by the country code (ISO 3166-1) as required by ETSI EN
+                319-412-1.
+              example: TINIT-RSSMRA70A0H501I
+            id:
+              type: string
+              description: Identitier of this delegation as defined in SGD
+            given_name:
+              type: string
+              description: First name of the delgating subject
+            family_name:
+              type: string
+              description: Last name of the delgating subject
+            https://attributes.eid.gov.it/fiscal_number:
+              type: string
+              description:
+                Fiscal number  of the delgating subject preceded by the prefix
+                TIN followed by the country code (ISO 3166-1) as required by
+                ETSI EN 319-412-1. If it is not available, then birthdate is
+                required.
+            birthdate:
+              type: string
+              description: Date of birth of delegating subject
+            email:
+              type: string
+              description: E-mail address of the delegating subject
+            phone_number:
+              type: string
+              description: mobile phone number of the delegating subject
+            https://sgd.gov.it/delegation_iat:
+              type: string
+              description: UNIX timestamp of when the delegation is created
+            https://sgd.gov.it/delegation_nbf:
+              type: string
+              description: UNIX timestamp of when the delegation is valid
+            https://sgd.gov.it/delegation_exp:
+              type: string
+              description: UNIX timestamp of when the delegation is expired
+            https://sgd.gov.it/delegation_los:
+              type: array
+              description:
+                List of identifiers of services (or class of services) provided
+                by the authenticated RP and contained in the given delegation
+              items:
+                type: string
+                description: Identifier of the service given as UUID v4
+                example: 18971e49-3c04-4e97-8344-02c01aeee936
+              example:
+                - "18971e49-3c04-4e97-8344-02c01aeee936"
+                - "32fef181-0ae8-4c93-9daa-0cab2b5c0f7e"
+          required:
+            - id
+            - iss
+            - sub
+            - iat
+            - jti
+            - given_name
+            - family_name
+            - https://attributes.eid.gov.it/fiscal_number
+            - https://sgd.gov.it/delegation_iat
+            - https://sgd.gov.it/delegation_nbf
+            - https://sgd.gov.it/delegation_exp
+            - https://sgd.gov.it/delegation_los
+        signature:
+          type: string
+          description: Signature of this JWT
+    Errors:
+      type: object
+      properties:
+        error:
+          description: Error Code
+          type: string
+        error_description:
+          description:
+            Human-readable ASCII encoded text description of the error
+          type: string
+      required:
+        - error
+        - error_description
+
+tags:
+  - description: Publicly accessible
+    externalDocs:
+      description: Guidelines Attribute Authority SPID
+      url: https://www.agid.gov.it/...
+    name: public
+  - description: Access is reserved for RPs under agreement with SGD
+    externalDocs:
+      description: Guidelines Attribute Authority SPID
+      #Riferimento al sito agid dove sono state pubblicate le Linee Guida Attribute Authority SPID
+      url: https://www.agid.gov.it/...
+    name: protected
