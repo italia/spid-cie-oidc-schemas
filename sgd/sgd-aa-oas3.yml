@@ -222,9 +222,9 @@ paths:
       tags:
         - protected
       parameters:
-        - in: path
+        - in: query
           name: service
-          required: true
+          required: false
           schema:
             type: string
           description:
@@ -232,12 +232,6 @@ paths:
             online OAS3 catalog of delegable services provided by the
             authenticated RP. It must be a UUID v4 identifier.
           example: 21905575-991a-43d5-bede-25f59ae93373
-        - name: DPoP
-          in: header
-          required: true
-          description: DPoP proof
-          schema:
-            "$ref": "#/components/schemas/DPoP"
       responses:
         "200":
           description: Ok
@@ -286,12 +280,6 @@ paths:
           schema:
             type: string
           description: Identitier of this delegation as defined by SGD
-        - name: DPoP
-          in: header
-          required: true
-          description: DPoP proof
-          schema:
-            "$ref": "#/components/schemas/DPoP"
       responses:
         "200":
           description: Ok
@@ -339,6 +327,8 @@ components:
       type: http
       scheme: DPoP
     dpopProof:
+      description: |-
+        Una DPoP proof basata su https://github.com/danielfett/draft-dpop/blob/master/main.md
       type: apiKey
       in: header
       name: DPoP
@@ -413,14 +403,14 @@ components:
       type: string
       example:
         "eyJ0eXAiOiJkcG9wK2p3dCIsImFsZyI6IkVTMjU2IiwiandrIjp7Imt0eSI6IkVDIiwieCI6Imw4dEZyaHgtMzR0VjNoUklDUkRZOXpDa0RscEJoRjQyVVFVZldWQVdCRnMiLCJ5IjoiOVZFNGpmX09rX282NHpiVFRsY3VOSmFqSG10NnY5VERWclUwQ2R2R1JEQSIsImNydiI6IlAtMjU2In19.eyJqdGkiOiJlMWozVl9iS2ljOC1MQUVCIiwiaHRtIj      oiR0VUIiwiaHR1IjoiaHR0cHM6Ly9yZXNvdXJjZS5leGFtcGxlLm9yZy9wcm90ZWN0Z      WRyZXNvdXJjZSIsImlhdCI6MTU2MjI2MjYxOCwiYXRoIjoiZlVIeU8ycjJaM0RaNTNFc05yV0JiMHhXWG9hTnk1OUlpS0NBcWtzbVFFbyJ9.2oW9RP35yRqzhrtNP86L-Ey71E    OptxRimPPToA1plemAgR6pxHF8y6-yqyVnmcw6Fy1dqd-jfxSYoMxhAJpLjA"
-    DelegationList:
+    Delegations:
       type: object
       description:
         "JSON Object containing the delegation list. Each delegation is
         identified by the parameter id and the related fiscal number of
         delegating is given partially hidden for privacy reason"
       properties:
-        delegation_list:
+        items:
           type: array
           items:
             type: object
