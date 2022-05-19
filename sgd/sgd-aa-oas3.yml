@@ -18,19 +18,18 @@ info:
   x-summary: A subtitle for the catalog
 servers:
   - url: https://deleghedigitali.gov.it/api/v1
-    description: fdsfs
 
 paths:
   /status:
     get:
       operationId: get-status
-      description: fdfd
-      summary: fdfd
+      description: This path can be used to health-check the API. Using this path prevents arbitrary use of a server URL for the scope of the health check.
+      summary: Returns a response containing a successful status code if the service is working correctly.
       responses:
         "200":
           description: ok
           content:
-            application/problem+json:
+            application/json:
               schema:
                 type: string
       tags:
@@ -132,7 +131,7 @@ paths:
 
   /tos:
     get:
-      description: fdfd
+      description: It provides an HTML page with the Terms of Service
       operationId: get-tos
       summary:
         Returns the document with the terms and conditions related to this
@@ -154,13 +153,11 @@ paths:
         offlineAccess: true
         offlineAccessDurationMax: 8640000
 
-  /delegation/list:
+  /delegations:
     get:
       operationId: get-delegation
-      summary:
-        Returns the list of the delegations related to the services (or class of
-        services) provided by the authenticated RP and having the current user
-        as delegator
+      summary: Returns the list of the delegations
+      description: It provides the list of the delegations related to the services (or class of services) provided by the authenticated RP and having the current user as delegator. For privacy reason, each item contains only the minimum set of information about the delegations, needed by the user to select the delegation he wants to use. Only the delegation identification number and the delegator fiscal number partially hidden is given. 
       security:
         - dpopToken: []
           dpopProof: []
@@ -203,14 +200,12 @@ paths:
         "500":
           $ref: "#/components/responses/500"
 
-  /delegations:
+  /delegations/{services}:
     get:
-      description: fdfd
+      description: "It provides the list of the delegations having the current user as  delegator and related to the services (or class of services) provided by the authenticated RP and identifed from the service component in the URL. For privacy reason, each item contains only the minimum set of information about the delegations, needed by the user to select the delegation he wants to use. Only the delegation identification number and the delegator fiscal number partially hidden is given. "
       operationId: list-delegation-for-service
       summary:
-        "Returns the list of the delegations having the current user as
-        delegator and related to the services (or class of services) provided by
-        the authenticated RP and identifed from the service component in the URL"
+        "Returns the list of the delegations given the services (or class of services) identifiers as input"
       security:
         - dpopToken: []
           dpopProof: []
@@ -259,10 +254,8 @@ paths:
   /delegations/{id}:
     get:
       operationId: get-delegation-id
-      summary: "
-        Returns the attributes related to the delegation identified by the
-        delegation_id component of the URL
-        "
+      summary: "Returns the attributes related to the delegation identified by the delegation_id component of the URL"
+      description: "It provides the full set of attributes related to a selected delegation as a signed JWT object"
       security:
         - dpopToken: []
           dpopProof: []
@@ -296,7 +289,7 @@ paths:
                   id: "1A00001AA21"
                   iss: "https://deleghedigitali.gov.it/"
                   sub: "TINIT-RSSMRA70A0H501I"
-                  iat: "1650575048"
+                  iat: 1650575048
                   jti: "2bcbb3b9-cb5b-4ff7-81b0-3da894dd8c62"
                   given_name: "ALESSANDRO"
                   family_name: "BIANCHI"
@@ -304,9 +297,9 @@ paths:
                   birthdate: "01/01/1980"
                   email: "a.bianchi@email.com"
                   phone_number: "+391234567890"
-                  https://sgd.gov.it/delegation_iat: "1650573248"
-                  https://sgd.gov.it/delegation_nbf: "1650573248"
-                  https://sgd.gov.it/delegation_exp: "1650576848"
+                  https://sgd.gov.it/delegation_iat: 1650573248
+                  https://sgd.gov.it/delegation_nbf: 1650573248
+                  https://sgd.gov.it/delegation_exp: 1650576848
                   https://sgd.gov.it/delegation_los:
                     - "18971e49-3c04-4e97-8344-02c01aeee936"
                     - "2fef181-0ae8-4c93-9daa-0cab2b5c0f7e"
@@ -343,7 +336,7 @@ components:
     "400":
       description: Bad request.
       content:
-        application/problem+json:
+        application/json:
           schema:
             $ref: "#/components/schemas/Errors"
           example:
@@ -356,7 +349,7 @@ components:
         The client request has not been completed because it lacks valid
         authorization credentials for the requested resource.
       content:
-        application/problem+json:
+        application/json:
           schema:
             $ref: "#/components/schemas/Errors"
           example:
@@ -367,7 +360,7 @@ components:
     "404":
       description: The requested resource was not found
       content:
-        application/problem+json:
+        application/json:
           schema:
             $ref: "#/components/schemas/Errors"
           example:
@@ -376,7 +369,7 @@ components:
     "429":
       description: Too Many Requests
       content:
-        application/problem+json:
+        application/json:
           schema:
             $ref: "#/components/schemas/Errors"
           example:
@@ -387,7 +380,7 @@ components:
     "500":
       description: Internal server error.
       content:
-        application/problem+json:
+        application/json:
           schema:
             $ref: "#/components/schemas/Errors"
           example:
