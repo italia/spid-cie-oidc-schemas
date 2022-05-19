@@ -184,7 +184,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/DelegationList"
+                $ref: "#/components/schemas/Delegations"
               example:
                 delegation_list:
                   - id: 1A00001AA21
@@ -238,7 +238,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/DelegationList"
+                $ref: "#/components/schemas/Delegations"
               example:
                 delegation_list:
                   - id: 1A00001AA21
