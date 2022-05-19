@@ -40,7 +40,7 @@ paths:
     get:
       operationId: get-versioning
       summary: Returns the list of all available versions of the API
-      description: fdsfsd
+      description: It provides a chronological list of all the available API versions. Each item of the list contains the version number together with the released date of the API. 
       responses:
         "200":
           description: Ok
@@ -61,7 +61,9 @@ paths:
                       type: object
                       properties:
                         iat:
-                          type: string
+                          type: integer
+                          minimum: 0
+                          exclusiveMinimum: true
                           description:
                             UNIX timestamp of when this version was released
                         version:
@@ -473,7 +475,9 @@ components:
               type: string
               description: Identifier of this token
             iat:
-              type: string
+              type: integer
+              minimum: 0
+              exclusiveMinimum: true
               description: UNIX timestamp of when this token was created
             iss:
               type: string
@@ -513,13 +517,19 @@ components:
               type: string
               description: mobile phone number of the delegating subject
             https://sgd.gov.it/delegation_iat:
-              type: string
+              type: integer
+              minimum: 0
+              exclusiveMinimum: true
               description: UNIX timestamp of when the delegation is created
             https://sgd.gov.it/delegation_nbf:
-              type: string
+              type: integer
+              minimum: 0
+              exclusiveMinimum: true
               description: UNIX timestamp of when the delegation is valid
             https://sgd.gov.it/delegation_exp:
-              type: string
+              type: integer
+              minimum: 0
+              exclusiveMinimum: true
               description: UNIX timestamp of when the delegation is expired
             https://sgd.gov.it/delegation_los:
               type: array
