@@ -203,10 +203,10 @@ paths:
         "500":
           $ref: "#/components/responses/500"
 
-  /delegation/list/{service}:
+  /delegations:
     get:
       description: fdfd
-      operationId: get-delgation-service
+      operationId: list-delegation-for-service
       summary:
         "Returns the list of the delegations having the current user as
         delegator and related to the services (or class of services) provided by
@@ -256,7 +256,7 @@ paths:
         "500":
           $ref: "#/components/responses/500"
 
-  /delegation/get/{id}:
+  /delegations/{id}:
     get:
       operationId: get-delegation-id
       summary: "
