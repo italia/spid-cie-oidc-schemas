@@ -222,6 +222,7 @@ paths:
           required: false
           schema:
             type: string
+            format: uuid
           description:
             Identifier of the service (or class of services) as given in the
             online OAS3 catalog of delegable services provided by the
