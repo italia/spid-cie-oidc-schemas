@@ -182,14 +182,9 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Delegations"
-              example:
-                delegation_list:
-                  - id: 1A00001AA21
-                    https://attributes.eid.gov.it/fiscal_number: TINIT-RSSMR*********I
-                  - id: 1A00002AA21
-                    https://attributes.eid.gov.it/fiscal_number: TINIT-ABCXX*********Z
-                  - id: 1A00004AA21
-                    https://attributes.eid.gov.it/fiscal_number: TINIT-DEFYY*********W
+              examples:
+                delegations:
+                  $ref: "#/components/examples/delegations"
         "401":
           $ref: "#/components/responses/401"
         "404":
@@ -235,12 +230,9 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Delegations"
-              example:
-                delegation_list:
-                  - id: 1A00001AA21
-                    https://attributes.eid.gov.it/fiscal_number: TINIT-RSSMR*********I
-                  - id: 1A00002AA21
-                    https://attributes.eid.gov.it/fiscal_number: TINIT-ABCXX*********Z
+              examples:
+                delegations_services:
+                  $ref: "#/components/examples/delegations_services"
         "400":
           $ref: "#/components/responses/400"
         "401":
@@ -281,29 +273,9 @@ paths:
             application/jwt:
               schema:
                 $ref: "#/components/schemas/DelegationAttribute"
-              example:
-                header:
-                  alg: "RS256"
-                  kid: "WTNFc0JtSEg2dmptZUdrRHNUVlFJSHV2azZsNFhLY3hQZE5wYV9TanprSQ"
-                  typ: "JWT"
-                body:
-                  id: "1A00001AA21"
-                  iss: "https://deleghedigitali.gov.it/"
-                  sub: "TINIT-RSSMRA70A0H501I"
-                  iat: 1650575048
-                  jti: "2bcbb3b9-cb5b-4ff7-81b0-3da894dd8c62"
-                  given_name: "ALESSANDRO"
-                  family_name: "BIANCHI"
-                  https://attributes.eid.gov.it/fiscal_number: "TINIT-BNCLSN71H10H501B"
-                  birthdate: "01/01/1980"
-                  email: "a.bianchi@email.com"
-                  phone_number: "+391234567890"
-                  https://sgd.gov.it/delegation_iat: 1650573248
-                  https://sgd.gov.it/delegation_nbf: 1650573248
-                  https://sgd.gov.it/delegation_exp: 1650576848
-                  https://sgd.gov.it/delegation_los:
-                    - "18971e49-3c04-4e97-8344-02c01aeee936"
-                    - "2fef181-0ae8-4c93-9daa-0cab2b5c0f7e"
+              examples:
+                delegations_attributes:
+                  $ref: "#/components/examples/delegations_attributes"
         "400":
           $ref: "#/components/responses/400"
         "401":
@@ -407,6 +379,7 @@ components:
         items:
           type: array
           items:
+            minItems: 1
             type: object
             properties:
               id:
@@ -442,13 +415,16 @@ components:
                 - "ES384"
                 - "ES512"
               default: RS256
+              example: "RS256"
             kid:
               type: string
               description: Identifier of the key used to sign this JWT
+              example: "WTNFc0JtSEg2dmptZUdrRHNUVlFJSHV2azZsNFhLY3hQZE5wYV9TanprSQ"
             typ:
               type: string
               description: Identifier of the type of token
               default: "JWT"
+              example: "JWT"
           required:
             - alg
             - kid
@@ -458,15 +434,18 @@ components:
             jti:
               type: string
               description: Identifier of this token
+              example: "2bcbb3b9-cb5b-4ff7-81b0-3da894dd8c62"
             iat:
               type: integer
               minimum: 0
               exclusiveMinimum: true
               description: UNIX timestamp of when this token was created
+              example: 1650575048
             iss:
               type: string
               description: Identifier of the entity which issued this token
-              default: https://deleghedigitali.it/
+              default: https://deleghedigitali.gov.it/
+              example: "https://deleghedigitali.gov.it/"
             sub:
               type: string
               description:
@@ -474,16 +453,19 @@ components:
                 delegate holder of the delegation preceded by the prefix TIN
                 followed by the country code (ISO 3166-1) as required by ETSI EN
                 319-412-1.
-              example: TINIT-RSSMRA70A0H501I
+              example: "TINIT-RSSMRA70A0H501I"
             id:
               type: string
               description: Identitier of this delegation as defined in SGD
+              example: "1A00001AA21"
             given_name:
               type: string
               description: First name of the delgating subject
+              example: "ALESSANDRO"
             family_name:
               type: string
               description: Last name of the delgating subject
+              example: "BIANCHI"
             https://attributes.eid.gov.it/fiscal_number:
               type: string
               description:
@@ -491,30 +473,37 @@ components:
                 TIN followed by the country code (ISO 3166-1) as required by
                 ETSI EN 319-412-1. If it is not available, then birthdate is
                 required.
+              example: "TINIT-BNCLSN71H10H501B"
             birthdate:
               type: string
               description: Date of birth of delegating subject
+              example: "01/01/1980"
             email:
               type: string
               description: E-mail address of the delegating subject
+              example: "a.bianchi@email.com"
             phone_number:
               type: string
               description: mobile phone number of the delegating subject
+              example: "+391234567890"
             https://sgd.gov.it/delegation_iat:
               type: integer
               minimum: 0
               exclusiveMinimum: true
               description: UNIX timestamp of when the delegation is created
+              example: 1650573248
             https://sgd.gov.it/delegation_nbf:
               type: integer
               minimum: 0
               exclusiveMinimum: true
               description: UNIX timestamp of when the delegation is valid
+              example: 1650573248
             https://sgd.gov.it/delegation_exp:
               type: integer
               minimum: 0
               exclusiveMinimum: true
               description: UNIX timestamp of when the delegation is expired
+              example: 1650576848
             https://sgd.gov.it/delegation_los:
               type: array
               description:
@@ -556,6 +545,47 @@ components:
       required:
         - error
         - error_description
+
+  examples:
+    delegations_attributes:
+      value:
+        header:
+          alg: "RS256"
+          kid: "WTNFc0JtSEg2dmptZUdrRHNUVlFJSHV2azZsNFhLY3hQZE5wYV9TanprSQ"
+          typ: "JWT"
+        body:
+          id: "1A00001AA21"
+          iss: "https://deleghedigitali.gov.it/"
+          sub: "TINIT-RSSMRA70A0H501I"
+          iat: 1650575048
+          jti: "2bcbb3b9-cb5b-4ff7-81b0-3da894dd8c62"
+          given_name: "ALESSANDRO"
+          family_name: "BIANCHI"
+          https://attributes.eid.gov.it/fiscal_number: "TINIT-BNCLSN71H10H501B"
+          birthdate: "01/01/1980"
+          email: "a.bianchi@email.com"
+          phone_number: "+391234567890"
+          https://sgd.gov.it/delegation_iat: 1650573248
+          https://sgd.gov.it/delegation_nbf: 1650573248
+          https://sgd.gov.it/delegation_exp: 1650576848
+          https://sgd.gov.it/delegation_los:
+            - "18971e49-3c04-4e97-8344-02c01aeee936"
+            - "2fef181-0ae8-4c93-9daa-0cab2b5c0f7e"
+    delegations:
+      value:
+          - id: 1A00001AA21
+            https://attributes.eid.gov.it/fiscal_number: TINIT-RSSMR*********I
+          - id: 1A00002AA21
+            https://attributes.eid.gov.it/fiscal_number: TINIT-ABCXX*********Z
+          - id: 1A00004AA21
+            https://attributes.eid.gov.it/fiscal_number: TINIT-DEFYY*********W
+    delegations_services:
+      value:
+          - id: 1A00001AA21
+            https://attributes.eid.gov.it/fiscal_number: TINIT-RSSMR*********I
+          - id: 1A00002AA21
+            https://attributes.eid.gov.it/fiscal_number: TINIT-ABCXX*********Z
+    
 
 tags:
   - description: Publicly accessible
