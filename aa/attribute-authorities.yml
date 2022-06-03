@@ -1,5 +1,16 @@
 components:
   responses:
+    Attributes:
+      description: |
+        A successful response returing attributes in 
+        different formats.
+      content:
+        application/json:
+          $ref: '#/components/schemas/Attributes'
+        application/jwt:
+          schema:
+            $ref: '#/components/schemas/Attributes'
+
     403MissingUserConsent:
       description: |
         Se una chiamata all'API per la richiesta di attributi qualificati
@@ -117,6 +128,8 @@ info:
 openapi: 3.0.2
 paths:
   /qualifica: {}
+  /status: {}
+
 servers:
 - url: /api/v1.1.1
 tags: 
