@@ -1,0 +1,139 @@
+components:
+  responses:
+    403MissingUserConsent:
+      description: |
+        Se una chiamata all'API per la richiesta di attributi qualificati
+         non può essere soddisfatta perché sprovvista della prova di
+          avvenuto assenso dell’utente, l’AA DEVE ritornare una risposta  
+          con codice di stato HTTP 403 Forbidden 
+          e un contenuto di tipo json con l’indicazione descrittiva 
+          "Authorization required" 
+          all’interno dell’attributo error_description. 
+      headers: {}  # TODO
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/MissingUserConsent'
+  securitySchemes: {
+        "SPID Attribute Authority Security Scheme": {
+          bearerFormat: "JWT",
+          description: "JWT Token Authentication Scheme",
+          scheme: "bearer",
+          type: "http"
+        },
+        UserConsent: {
+              "type": "openIdConnect",
+              "openIdConnectUrl": "https://aa.it/.well-known/...",
+              "description": "Questa sezione esplicita il riferimento all'URL di configurazione
+                di OIDC relativo al provider. Deve contenere le informazioni
+                indicate in: https://openid.net/specs/openid-connect-discovery-1_0.html"
+          }
+    }
+  examples:
+    TokenExample:
+      description: OAUTH token example
+      value:
+        acr_values_supported:
+        - https://www.spid.gov.it/SpidL1
+        - https://www.spid.gov.it/SpidL2
+        authorization_endpoint: https://as.aa.it/authorization
+        claim_types_supported:
+        - normal
+        - aggregated
+        - distributed
+        claims_parameter_supported: true
+        claims_supported:
+        - iss
+        - zoneinfo
+        - updated_at
+        - sub
+        client_authn_method:
+        - bearer_header
+        end_session_endpoint: https://as.aa.it/session
+        grant_types_supported:
+        - authorization_code
+        - urn:ietf:params:oauth:grant-type:jwt-bearer
+        - refresh_token
+        id_token_encryption_alg_values_supported:
+        - RSA-OAEP
+        - RSA-OAEP-256
+        id_token_encryption_enc_values_supported:
+        - A128GCM
+        - A192GCM
+        - A256GCM
+        id_token_signing_alg_values_supported:
+        - RS256
+        introspection_endpoint: https://as.aa.it/introspection
+        issuer: https://as.aa.it
+        jwks_uri: https://as.aa.it/static/jwks.json
+        logo_uri: https://as.aa.it/static/logo.svg
+        organization_name: Example Attribute Authority
+        request_object_encryption_alg_values_supported:
+        - RSA-OAEP
+        - RSA-OAEP-256
+        request_object_encryption_enc_values_supported:
+        - A128GCM
+        - A192GCM
+        - A256GCM
+        request_object_signing_alg_values_supported:
+        - RS256
+        response_modes_supported:
+        - query
+        - fragment
+        - form_post
+        response_types_supported:
+        - code
+        scopes_supported:
+        - offline_access
+        - openid
+        - get-qualifica
+        subject_types_supported:
+        - public
+        - pairwise
+        token_endpoint: https://as.aa.it/token
+        token_endpoint_auth_methods_supported:
+        - private_key_jwt
+        token_endpoint_auth_signing_alg_values_supported:
+        - RS256
+        userinfo_signing_alg_values_supported:
+        - RS256
+        version: '3.0'
+info:
+  contact:
+    name: Contatto di riferimento
+    url: https://www.aa.it
+  description: "Descrizione delle informazioni restituite dall\u2019 Attribute Authority"
+  termsOfService: https://api.aa.it/tos
+  title: Esempio di Attribute Authority
+  version: 1.1.0
+  x-spid:
+    aa-home: https://api.aa.it/v1.0.0/index.json
+    aa-lookup-attribute: fiscalNumber
+    aa-registry: https://registry.spid.gov.it/metadata/aa/ente.json
+    aa-required-attributes:
+    - fiscalNumber
+    - email
+    aa-version: 1.0.0
+openapi: 3.0.2
+paths:
+  /qualifica: {}
+servers:
+- url: /api/v1.1.1
+tags: 
+- description: Accesso pubblico
+  externalDocs:
+    description: Linee Guida Attribute Authority SPID
+    url: https://www.agid.gov.it/...
+  name: public
+- description: Accesso riservato a SP convenzionati
+  externalDocs:
+    description: Linee Guida Attribute Authority SPID
+    url: https://www.agid.gov.it/...
+  name: protected
+- description: |-
+    Accesso previa acquisizione dell'assenso dell'utente da
+    parte dell'AA
+  externalDocs:
+    description: Linee Guida Attribute Authority SPID
+    url: https://www.agid.gov.it/...
+  name: private
