@@ -36,7 +36,7 @@ info:
         lines = tabellizza(schema_content)
         df= pd.DataFrame(lines, columns=['Claim', 'Type', 'Description', 'Reference'])
         df.to_excel("spid-sdg.xls")
- 
+
 
 servers: []
 tags: [ ]
@@ -76,11 +76,11 @@ components:
       properties:
         iss:
           <<: *iss
-          description: URL che identifica univocamente l’emittente del  trust mark (SGD-AA. o SA abilitati) 
+          description: URL che identifica univocamente l’emittente del  trust mark (SGD-AA. o SA abilitati)
         sub:
           description: URL che identifica univocamente l’ente/organizzazione che intende aderire al SGD
           <<: *URL
-        id: 
+        id:
           description: |-
             Identificativo univoco del trust mark secondo la struttura seguente: https://deleghedigitali.gov.it /<ENTITY_TYPE>/sgd
           type: string
@@ -88,7 +88,7 @@ components:
           maxLength: 4096
           minLength: 12
         iat:
-          description: Timestamp di emissione del trust mark espresso come “Seconds Since the Epoch” 
+          description: Timestamp di emissione del trust mark espresso come “Seconds Since the Epoch”
           type: integer
           format: int64
           externalDocs:
@@ -112,22 +112,22 @@ components:
           maxLength: 4096
           minLength: 12
           description: |-
-            OPZIONALE. URL dove è disponibile l’immagine del logo dell’ente/organizzazione che intende aderire al SGD in un formato SVG. 
-        organization_name:     
+            OPZIONALE. URL dove è disponibile l’immagine del logo dell’ente/organizzazione che intende aderire al SGD in un formato SVG.
+        organization_name:
           type: string
           format: url
           maxLength: 4096
           minLength: 12
           description: |-
             OBBLIGATORIO. Denominazione completa dell’ente/organizzazione che intende aderire al SGD
-        organization_type:     
+        organization_type:
           type: string
           format: url
           maxLength: 4096
           minLength: 12
           description: |-
             OBBLIGATORIO. Indica se l’ente/organizzazione identificata nel parametro sub afferisce alla pubblica amministrazione o al settore privato. I valori supportati sono public o private
-        id_code:               
+        id_code:
           type: string
           format: url
           maxLength: 4096
@@ -135,22 +135,22 @@ components:
           description: |-
             OBBLIGATORIO. Codice di identificazione dell’ente/organizzazione identificata nel parametro sub,
              valorizzato con il codice IPA nel caso afferente alla PA, con la partita IVA o codice fiscale nel caso afferente al settore privato
-        email:                 
+        email:
           type: string
           format: url
           maxLength: 4096
           minLength: 12
           description: |-
             OBBLIGATORIO. Indirizzo e-mail istituzionale o PEC dell’ente/organizzazione che intende aderire al SGD
-        policy_uri:            
+        policy_uri:
           type: string
           format: url
           maxLength: 4096
           minLength: 12
           description: |-
-            OPZIONALE. URL dove è disponibile la privacy policy dell’ente/organizzazione che intende aderire al SGD. 
-            Può essere presente più di una occorrenza opportunamente localizzata in più lingue. DEVE essere presente almeno il valore localizzato nella lingua italiana (policy_uri#it) [OIDC-REGISTRATION#Section2.1], [OIDC-CORE#Section5.2]. 
-        tos_uri:               
+            OPZIONALE. URL dove è disponibile la privacy policy dell’ente/organizzazione che intende aderire al SGD.
+            Può essere presente più di una occorrenza opportunamente localizzata in più lingue. DEVE essere presente almeno il valore localizzato nella lingua italiana (policy_uri#it) [OIDC-REGISTRATION#Section2.1], [OIDC-CORE#Section5.2].
+        tos_uri:
           type: string
           format: url
           maxLength: 4096
@@ -158,7 +158,7 @@ components:
           description: |-
             OPZIONALE. URL dove è disponibile la info policy dell’ente/organizzazione che intende aderire al SGD.
              Può essere presente più di una occorrenza opportunamente localizzata in più lingue. DEVE essere presente almeno il valore localizzato nella lingua italiana (tos_uri#it) [OIDC-REGISTRATION#Section2.1],[OIDC-CORE#Section5.2].
-        service_documentation: 
+        service_documentation:
           type: string
           format: url
           maxLength: 4096

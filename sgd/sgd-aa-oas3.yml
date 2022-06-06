@@ -39,7 +39,7 @@ paths:
     get:
       operationId: get-versioning
       summary: Returns the list of all available versions of the API
-      description: It provides a chronological list of all the available API versions. Each item of the list contains the version number together with the released date of the API. 
+      description: It provides a chronological list of all the available API versions. Each item of the list contains the version number together with the released date of the API.
       responses:
         "200":
           description: Ok
@@ -157,7 +157,7 @@ paths:
     get:
       operationId: get-delegation
       summary: Returns the list of the delegations
-      description: It provides the list of the delegations related to the services (or class of services) provided by the authenticated RP and having the current user as delegator. For privacy reason, each item contains only the minimum set of information about the delegations, needed by the user to select the delegation he wants to use. Only the delegation identification number and the delegator fiscal number partially hidden is given. 
+      description: It provides the list of the delegations related to the services (or class of services) provided by the authenticated RP and having the current user as delegator. For privacy reason, each item contains only the minimum set of information about the delegations, needed by the user to select the delegation he wants to use. Only the delegation identification number and the delegator fiscal number partially hidden is given.
       security:
         - dpopToken: []
           dpopProof: []
@@ -585,7 +585,7 @@ components:
             https://attributes.eid.gov.it/fiscal_number: TINIT-RSSMR*********I
           - id: 1A00002AA21
             https://attributes.eid.gov.it/fiscal_number: TINIT-ABCXX*********Z
-    
+
 
 tags:
   - description: Publicly accessible

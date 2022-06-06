@@ -1,4 +1,14 @@
 components:
+  parameters:
+    idphint:
+      name: idphint
+      in: query
+      schema:
+        type: string
+
+      description: |-
+        idphint=https%3A%2F%2Fspid.idp.it
+      example: idphint=https%3A%2F%2Fspid.idp.it
   responses:
     Attributes:
       description: |
@@ -6,10 +16,11 @@ components:
         different formats.
       content:
         application/json:
-          $ref: '#/components/schemas/Attributes'
+          schema:
+            $ref: '#/components/schemas/Attribute'
         application/jwt:
           schema:
-            $ref: '#/components/schemas/Attributes'
+            $ref: '#/components/schemas/Attribute'
 
     403MissingUserConsent:
       description: |
@@ -40,6 +51,239 @@ components:
           type: "http"
         }
   schemas:
+    MissingUserConsent:
+      $ref: 'https://teamdigitale.github.io/openapi/master/definitions.yaml#/components/schemas/Problem'
+    Attribute:
+      type: object
+      additionalProperties: false
+      required:
+        - attribute
+      properties:
+        attribute:
+          type: string
+          example: ciao
+    TokenExchangeResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - access_token
+        - expires_in
+        - issued_token_type
+        - token_type
+      properties:
+        access_token:
+          description: |-
+            Il contenuto dell'Access Token
+          type: string
+          format: jwt
+          example: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWV9.TJVA95OrM7E2cBab30RMHrHDcEfxjoYZgeFONFh7HgQ
+        expires_in:
+          type: integer
+          example: 3600
+          description: tempo di validità del token in secondi.
+        issued_token_type:
+          description: |-
+            Il tipo di token generato.
+          type: string
+          enum:
+          - urn:ietf:params:oauth:token-type:access_token
+        token_type:
+          description: |-
+            Il tipo di token che è stato rilasciato. L'AS
+            DEVE supportare almeno il tipo Bearer ma
+            può supportare anche altri tipi di token compatibili
+            con quelli supportati dalle AA.
+          type: string
+          example: Bearer
+          enum:
+          - Bearer
+          - DPoP
+    TokenExchangeRequest:
+      additionalProperties: false
+      type: object
+      required:
+      - grant_type
+      - client_assertion
+      - client_assertion_type
+      - requested_token_type
+      - subject_token
+      - scope
+      - subject_token_type
+      properties:
+        grant_type:
+          type: string
+          description: |-
+            Il tipo di grant richiesta.
+          enum:
+            - urn:ietf:params:oauth:grant-type:token-exchange
+        scope:
+          type: string
+          example: "read:qualifica"
+        client_assertion:
+          description: |-
+            JWT Token che identifica il client firmato con la chiave
+            pubblica del RP, eventualmente associata ad un certificato.
+            [RFC7523#section-2.2].
+          type: string
+          format: jwt
+          example: eyJhbGciOiJIUzI1NiIs…
+          externalDocs:
+            url: https://datatracker.ietf.org/doc/html/rfc7523#section-2.2
+        client_assertion_type:
+          type: string
+          description: |-
+            Una client assertion descritta in [RFC7523#section-2.2].
+          enum:
+          - urn:ietf:params:oauth:client-assertion-type:jwt-bearer
+          externalDocs:
+            url: https://datatracker.ietf.org/doc/html/rfc7523#section-2.2
+        requested_token_type:
+          description: |-
+            Il tipo di token richiesto.
+          type: string
+          format: urn
+          enum:
+          - urn:ietf:params:oauth:token-type:access_token
+        subject_token:
+          description: |-
+            Il Grant Token ottenuto precedentemente dall'IdP e
+            spendibile presso la AA.
+          type: string
+          format: jwt
+          example: eyJhbGciOiJS...
+        subject_token_type:
+          description: |-
+            Il tipo di subject token.
+          type: string
+          format: url
+          enum:
+          - https://spid.gov.it/attribute-authority/grant-token
+        resource:
+          description: |-
+            URL assoluta corrispondente all’endpoint presso l’AA che permette di recuperare
+            l’attributo qualificato e per il quale si vuole ottenere l’access_token.
+            È possibile utilizzare un array di resource per indicare
+            che l’access_token emesso è destinato a essere utilizzato presso
+            diverse risorse.
+          type: string
+          format: url
+          example: https://rs.aa1.it/attributes
+          externalDocs:
+            url: https://datatracker.ietf.org/doc/html/rfc8693/#section-2.1
+
+    JWTReplaySafe:
+      required:
+        - iat
+        - exp
+        - nbf
+        - jti
+      properties: &JWTReplaySafe
+        iat:
+          type: integer
+          format: int64
+          description: |-
+            Timestamp di emissione del token, espresso in
+            UNIX Timestamp.
+          example: 1546300800
+          externalDocs:
+            url: https://tools.ietf.org/html/rfc7519#section-4.1.6
+        exp:
+          type: integer
+          format: int64
+          description: |-
+            Timestamp di scadenza del token, espresso in
+            UNIX Timestamp.
+          externalDocs:
+            url: https://tools.ietf.org/html/rfc7519#section-4.1.4
+        nbf:
+          type: integer
+          format: int64
+          description: |-
+            Timestamp di inizio validità del token,
+            espresso in UNIX Timestamp.
+          externalDocs:
+            url: https://tools.ietf.org/html/rfc7519#section-4.1.5
+        jti:
+          type: string
+          format: uuid
+          example: 2b71281c-cbcc-4ba9-9034-50b588161bd1
+          description: |-
+            Identificativo univoco del token.
+          externalDocs:
+            url: https://tools.ietf.org/html/rfc7519#section-4.1.7
+    GrantTokenHeader:
+      required:
+      - typ
+      properties:
+        typ:
+          type: string
+          description: |-
+            Identifica il tipo di token che si sta inviando.
+          enum:
+          - aa-grant+jwt
+    GrantTokenPayload:
+      required:
+      - iss
+      - sub
+      - aud
+      - iat
+      - exp
+      # altri valori.
+      - act
+      - sid
+      - acr
+      properties:
+        <<: *JWTReplaySafe
+        aud:
+          type: string
+          description: |-
+            Identificativo della AA cui è destinato il token corrispondente,
+            corrispondente al claim `iss` contenuto all’interno
+            dei metadata della AA.
+          externalDocs:
+            url: https://www.rfc-editor.org/rfc/rfc7519.html#section-4.1.3
+        sid:
+          type: string
+          description: |-
+            ResponseID SAML2 (con prefisso “saml:” )
+             o jti dell’ID Token OIDC (con prefisso “oidc:”),
+             per collegare il Grant Token all’autenticazione.
+          externalDocs:
+            url: https://openid.net/specs/openid-connect-frontchannel-1_0.html
+        acr:
+          type: string
+          description: |-
+            Identifica il livello di autenticazione SPID.
+        iss:
+          type: string
+          format: url
+          description: |-
+            Identificativo dell’IdP che ha emesso il token.
+        sub:
+          type: string
+          format: url
+          description: |-
+            Identificativo univoco dell’utente di tipo public. il valore è da interpretare in relazione all’attributo di lookup (aa-lookup-attribute) dichiarato nel documento OpenAPI.
+        act:
+          description: |-
+            Oggetto JSON che contiene il claim sub valorizzato
+            con l’identificativo del SP (entityID) / RP (client_id)
+              al quale viene restituito il GrantToken.
+              Esempio:
+              ```"act": { "sub": "https://rp.spid.gov.it" }```
+              .
+          type: object
+          required:
+            - sub
+          properties:
+            sub:
+              type: string
+              format: url
+              description: |-
+                Identificativo univoco dell’utente di tipo public. il valore è da interpretare in relazione all’attributo di lookup (aa-lookup-attribute) dichiarato nel documento OpenAPI.
+    Token:
+      type: string
+      format: jwt
     JWTPayload: &JWTPayload
       required:
       - iss
@@ -49,6 +293,7 @@ components:
       - exp
       - nbf
       properties:
+        <<: *JWTReplaySafe
         iss:
           description: URL che identifica univocamente l’emittente del  trust mark (SGD-AA. o SA abilitati)
           type: string
@@ -61,31 +306,7 @@ components:
           format: url
           maxLength: 4096
           minLength: 12
-        jti:
-          description: |-
-            Identificativo univoco del trust mark secondo la struttura seguente: https://deleghedigitali.gov.it /<ENTITY_TYPE>/sgd
-          type: string
-          format: url
-          maxLength: 4096
-          minLength: 12
-        iat:
-          description: Timestamp di emissione del trust mark espresso come “Seconds Since the Epoch”
-          type: integer
-          format: int64
-          externalDocs:
-            url: https://tools.ietf.org/html/rfc7519#section-4.1.6
-        exp:
-          description: Timestamp dopo il quale il trust mark non è più valido, espresso come “Seconds Since the Epoch” [RFC7519]. In caso di omissione, il trust mark si intende valido per sempre.
-          type: integer
-          format: int64
-          externalDocs:
-            url: https://tools.ietf.org/html/rfc7519#section-4.1.4
-        nbf:
-          description: Timestamp di emissione del trust mark espresso come “Seconds Since the Epoch”
-          type: integer
-          format: int64
-          externalDocs:
-            url: https://tools.ietf.org/html/rfc7519#section-4.1.6
+
     JoseHeader: &JoseHeaderBase
       required:
       - typ
@@ -112,6 +333,7 @@ components:
       - $ref: '#/components/schemas/OIDCMetadataProtected'
       - $ref: '#/components/schemas/XSPID'
       - $ref: '#/components/schemas/XSPIDOperation'
+      - $ref: '#/components/schemas/GrantTokenPayload'
     OIDCMetadataProtected:
       type: object
       description: |-
@@ -321,7 +543,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Qualifica"
+                $ref: "#/components/schemas/Attribute"
             application/jwt:
               schema:
                type: string
@@ -331,7 +553,31 @@ paths:
                   #/components/schemas/QualificaJWTPayload.
                   Indicare se la codifica è JWE o JWS.
 
+  /as/token:
+    post:
+      security:
+        - {}  # Autenticazione basata sul contenuto della request.
 
+      operationId: as_token
+      summary: Richiesta di token di autenticazione
+      description: |-
+        Questa funzione restituisce un Access Token.
+      tags:
+      - oauth2
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/TokenExchangeRequest"
+      responses:
+        "200":
+          description: |-
+            Token di autenticazione restituito con successo.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Token"
   /status: {}
 
 tags:
@@ -356,4 +602,4 @@ tags:
   description: Accesso pubblico per CAF convenzionati
   externalDocs:
     description: Convenzione che regola l’accesso ai dati per i CAF
-    url: "https://... "
+    url: "https://foo.bar"
