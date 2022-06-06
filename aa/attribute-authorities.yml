@@ -2,7 +2,7 @@ components:
   responses:
     Attributes:
       description: |
-        A successful response returing attributes in 
+        A successful response returing attributes in
         different formats.
       content:
         application/json:
@@ -15,39 +15,199 @@ components:
       description: |
         Se una chiamata all'API per la richiesta di attributi qualificati
          non può essere soddisfatta perché sprovvista della prova di
-          avvenuto assenso dell’utente, l’AA DEVE ritornare una risposta  
-          con codice di stato HTTP 403 Forbidden 
-          e un contenuto di tipo json con l’indicazione descrittiva 
-          "Authorization required" 
-          all’interno dell’attributo error_description. 
+          avvenuto assenso dell’utente, l’AA DEVE ritornare una risposta
+          con codice di stato HTTP 403 Forbidden
+          e un contenuto di tipo json con l’indicazione descrittiva
+          "Authorization required"
+          all’interno dell’attributo error_description.
       headers: {}  # TODO
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/MissingUserConsent'
-  securitySchemes: {
+  securitySchemes:
+        UserConsent:
+          type: openIdConnect
+          openIdConnectUrl: https://aa.it/.well-known/...
+          description: |-
+            Questa sezione esplicita il riferimento all'URL di configurazione
+            di OIDC relativo al provider. Deve contenere le informazioni indicate in:
+            https://openid.net/specs/openid-connect-discovery-1_0.html
         "SPID Attribute Authority Security Scheme": {
           bearerFormat: "JWT",
           description: "JWT Token Authentication Scheme",
           scheme: "bearer",
           type: "http"
-        },
-        UserConsent: {
-              "type": "openIdConnect",
-              "openIdConnectUrl": "https://aa.it/.well-known/...",
-              "description": "Questa sezione esplicita il riferimento all'URL di configurazione
-                di OIDC relativo al provider. Deve contenere le informazioni
-                indicate in: https://openid.net/specs/openid-connect-discovery-1_0.html"
-          }
-    }
+        }
+  schemas:
+    JWTPayload: &JWTPayload
+      required:
+      - iss
+      - sub
+      - jti
+      - iat
+      - exp
+      - nbf
+      properties:
+        iss:
+          description: URL che identifica univocamente l’emittente del  trust mark (SGD-AA. o SA abilitati)
+          type: string
+          format: url
+          maxLength: 4096
+          minLength: 12
+        sub:
+          description: URL che identifica univocamente l’ente/organizzazione che intende aderire al SGD
+          type: string
+          format: url
+          maxLength: 4096
+          minLength: 12
+        jti:
+          description: |-
+            Identificativo univoco del trust mark secondo la struttura seguente: https://deleghedigitali.gov.it /<ENTITY_TYPE>/sgd
+          type: string
+          format: url
+          maxLength: 4096
+          minLength: 12
+        iat:
+          description: Timestamp di emissione del trust mark espresso come “Seconds Since the Epoch”
+          type: integer
+          format: int64
+          externalDocs:
+            url: https://tools.ietf.org/html/rfc7519#section-4.1.6
+        exp:
+          description: Timestamp dopo il quale il trust mark non è più valido, espresso come “Seconds Since the Epoch” [RFC7519]. In caso di omissione, il trust mark si intende valido per sempre.
+          type: integer
+          format: int64
+          externalDocs:
+            url: https://tools.ietf.org/html/rfc7519#section-4.1.4
+        nbf:
+          description: Timestamp di emissione del trust mark espresso come “Seconds Since the Epoch”
+          type: integer
+          format: int64
+          externalDocs:
+            url: https://tools.ietf.org/html/rfc7519#section-4.1.6
+    JoseHeader: &JoseHeaderBase
+      required:
+      - typ
+      - alg
+      - kid
+      properties:
+        typ:
+          type: string
+          description: |-
+           Tipologia del Token, come normato dalle LG SPID OIDC e successivi avvisi,
+           se non specializzata assume il valore di “JWT”.
+        alg:
+          type: string
+          description: |-
+            Identifica l’algoritmo di cifratura utilizzato per firmare il JWT.
+            Come normato dalle LG SPID OIDC e successivi avvisi.
+        kid:
+          type: string
+          description: |-
+            Come normato dalle LG SPID OIDC e successivi avvisi.
+    All:
+      anyOf:
+      - $ref: '#/components/schemas/OIDCMetadataPrivate'
+      - $ref: '#/components/schemas/OIDCMetadataProtected'
+      - $ref: '#/components/schemas/XSPID'
+      - $ref: '#/components/schemas/XSPIDOperation'
+    OIDCMetadataProtected:
+      type: object
+      description: |-
+        Per il flusso protected, non dev'esserci l'authorization endpoint
+        perché l'utente non deve richiedere un authorization grant.
+      required:
+        - token_endpoint
+    OIDCMetadataPrivate:
+      type: object
+      description: |-
+        Per il flusso Private, servono authorization_endpoint e token_endpoint
+        perché l'autenticazione avviene su base utente.
+      required:
+        - authorization_endpoint
+        - token_endpoint
+    XSPID:
+      required:
+      - aa-home
+      - aa-lookup-attribute
+      - aa-registry
+      - aa-required-attributes
+      - aa-version
+      properties:
+        aa-version:
+          type: string
+          format: url
+          description: |-
+            OBBLIGATORIO. Deve contenere il valore 1.0.0 quale riferimento alla versione delle linee guida SPID per le AA cui l’API fa riferimento. Tale valore non è da confondere con il valore nel campo openapi che specifica la versione OpenAPI, né con il valore nel campo version dell’oggetto info, che invece specifica la versione del documento.
+        aa-home:
+          type: string
+          format: url
+          description: |-
+            OBBLIGATORIO. URI presso l’AA dove è esposto il presente documento OpenAPI
+        aa-lookup-attribute:
+          type: string
+          format: url
+          description: |-
+            OBBLIGATORIO. Stringa corrispondente all’attributo SPID utilizzato dalla AA come chiave di ricerca per l’utente. DEVE essere presente tra gli attributi indicati in in aa-required-attributes.
+        aa-registry:
+          type: string
+          format: url
+          description: |-
+            OBBLIGATORIO. URI presso il registro SPID delle AA dove è esposto il presente documento OpenAPI
+        aa-required-attributes:
+          description: |-
+            OBBLIGATORIO. Array di stringhe corrispondenti agli attributi SPID necessari alla AA per le proprie finalità. Es.: [‘fiscalNumber’, ‘email’]
+          type: array
+          minItems: 0
+          maxItems: 10
+          items:
+            type: string
+            description: |-
+              Lista degli attributi richiesti dall'AA
+
+    XSPIDOperation:
+      type: object
+      description: |-
+        Questa sezione contiene le informazioni relative all'operazione.
+      required:
+      - consentRequired
+      - consentType
+      - spidLevel
+      - offlineAccess
+      - offlineAccessDurationMax
+      additionalProperties: false
+      properties:
+        consentType:
+          description: |-
+            Tipo di consenso richiesto.
+          type: array
+          minItems: 0
+          maxItems: 10
+          uniqueItems: true
+          items:
+            type: string
+            enum:
+              - AA
+              - SP
+
   examples:
     TokenExample:
-      description: OAUTH token example
+      description: |-
+        OIDC Metadata che viene pubblicato in JSON.
       value:
+        version: '3.0'
+        introspection_endpoint: https://as.aa.it/introspection
+        issuer: https://as.aa.it
+        jwks_uri: https://as.aa.it/static/jwks.json
+        logo_uri: https://as.aa.it/static/logo.svg
+        organization_name: Example Attribute Authority
+        authorization_endpoint: https://as.aa.it/authorization
+        end_session_endpoint: https://as.aa.it/session
+        token_endpoint: https://as.aa.it/token
         acr_values_supported:
         - https://www.spid.gov.it/SpidL1
         - https://www.spid.gov.it/SpidL2
-        authorization_endpoint: https://as.aa.it/authorization
         claim_types_supported:
         - normal
         - aggregated
@@ -60,7 +220,6 @@ components:
         - sub
         client_authn_method:
         - bearer_header
-        end_session_endpoint: https://as.aa.it/session
         grant_types_supported:
         - authorization_code
         - urn:ietf:params:oauth:grant-type:jwt-bearer
@@ -74,11 +233,6 @@ components:
         - A256GCM
         id_token_signing_alg_values_supported:
         - RS256
-        introspection_endpoint: https://as.aa.it/introspection
-        issuer: https://as.aa.it
-        jwks_uri: https://as.aa.it/static/jwks.json
-        logo_uri: https://as.aa.it/static/logo.svg
-        organization_name: Example Attribute Authority
         request_object_encryption_alg_values_supported:
         - RSA-OAEP
         - RSA-OAEP-256
@@ -97,42 +251,90 @@ components:
         scopes_supported:
         - offline_access
         - openid
-        - get-qualifica
+        - read:qualifica
         subject_types_supported:
         - public
         - pairwise
-        token_endpoint: https://as.aa.it/token
         token_endpoint_auth_methods_supported:
         - private_key_jwt
         token_endpoint_auth_signing_alg_values_supported:
         - RS256
         userinfo_signing_alg_values_supported:
         - RS256
-        version: '3.0'
+openapi: 3.0.2
 info:
+  title: Esempio di Attribute Authority
+  version: 1.1.0
+  description: |-
+    Descrizione delle informazioni restituite dall'Attribute Authority.
+  termsOfService: https://api.aa.it/tos
   contact:
     name: Contatto di riferimento
     url: https://www.aa.it
-  description: "Descrizione delle informazioni restituite dall\u2019 Attribute Authority"
-  termsOfService: https://api.aa.it/tos
-  title: Esempio di Attribute Authority
-  version: 1.1.0
   x-spid:
-    aa-home: https://api.aa.it/v1.0.0/index.json
-    aa-lookup-attribute: fiscalNumber
+    aa-version: 1.0.0
+    aa-home: https://api.aa.it/v1/openapi.json
     aa-registry: https://registry.spid.gov.it/metadata/aa/ente.json
+    aa-lookup-attribute: fiscalNumber
     aa-required-attributes:
     - fiscalNumber
     - email
-    aa-version: 1.0.0
-openapi: 3.0.2
+servers:
+- url: https://api.aa.it/api/v1
 paths:
-  /qualifica: {}
+  /attributo-a:
+    get:
+      operationId: mostra_attributo_a
+      summary: Mostra l'attributo A
+      description: |-
+        Questa funzione restituisce l'attributo A.
+      tags:
+      - protected
+      - modi
+      parameters:
+      - name: taxCode
+        in: query
+        description: Codice fiscale dell'utente
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: |-
+            Attributo A restituito con successo.
+  /qualifica:
+    get:
+      operationId: mostra_qualifica
+      summary: Mostra un attributo qualificato.
+      # Autenticazione di tipo UserConsent
+      security:
+        - UserConsent: [ 'read:qualifica']
+      x-spid-operation:
+        consentRequired: true
+        spidLevel: L1
+        offlineAccessExpiresIn: 864000
+      responses:
+        "200":
+          description: |-
+            Attributo qualificato restituito con successo."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Qualifica"
+            application/jwt:
+              schema:
+               type: string
+               pattern: ^[a-zA-Z\_\-0-9]+\.[a-zA-Z\_\-0-9]+\.[a-zA-Z\_\-0-9]+$
+               description: |-
+                  Un oggetto il cui payload è definito in
+                  #/components/schemas/QualificaJWTPayload.
+                  Indicare se la codifica è JWE o JWS.
+
+
   /status: {}
 
-servers:
-- url: /api/v1.1.1
-tags: 
+tags:
 - description: Accesso pubblico
   externalDocs:
     description: Linee Guida Attribute Authority SPID
@@ -150,3 +352,8 @@ tags:
     description: Linee Guida Attribute Authority SPID
     url: https://www.agid.gov.it/...
   name: private
+- name: protected-convenzione-caf
+  description: Accesso pubblico per CAF convenzionati
+  externalDocs:
+    description: Convenzione che regola l’accesso ai dati per i CAF
+    url: "https://... "

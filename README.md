@@ -22,7 +22,7 @@
 
 Questo repo contiene una serie di componenti riusabili:
 
-- schemi dati per JWT 
+- schemi dati per JWT
 - specifiche openapi
 
 
@@ -37,7 +37,7 @@ e vengono formattati tramite il tool `pre-commit`.
 
 # Come contribuire
 
-E' possibile aprire issue e pull request 
+E' possibile aprire issue e pull request
 
 ## pre-commit
 
@@ -65,8 +65,8 @@ O installalo come pre-commit hook
 
 ### Segnalazione bug e richieste di aiuto
 
-# Manutenzione 
+# Manutenzione
 
-# Licenza 
+# Licenza
 
 BSD3
