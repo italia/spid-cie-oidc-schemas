@@ -39,8 +39,8 @@ paths:
     get:
       operationId: show_status
       description: |-
-        This path can be used to health-check the API. 
-        Using this path prevents arbitrary use of a server URL 
+        This path can be used to health-check the API.
+        Using this path prevents arbitrary use of a server URL
         for the scope of the health check.
       summary: >-
         Verifies that the server is working correctly.
@@ -61,9 +61,9 @@ paths:
       operationId: list_versions
       summary: Returns the list of all available versions of the API
       description: |-
-        It provides a chronological list of all the available API versions. 
-        Each item of the list contains the version number 
-        together with the released date of the API. 
+        It provides a chronological list of all the available API versions.
+        Each item of the list contains the version number
+        together with the released date of the API.
       responses:
         <<: *common-responses
         "200":
@@ -164,14 +164,14 @@ paths:
       summary: Returns the list of the delegations
       description: |-
         List of the delegations related to the services
-        (or class of services) provided by the authenticated RP and having 
-        the current user as delegator. 
-         
-        For privacy reason, each item contains 
-        only the minimum set of information about the delegations, 
+        (or class of services) provided by the authenticated RP and having
+        the current user as delegator.
+
+        For privacy reason, each item contains
+        only the minimum set of information about the delegations,
         needed by the user to select the delegation he wants to use.
-        Only *the delegation identification number* and the *delegator 
-        fiscal number partially hidden* is given. 
+        Only *the delegation identification number* and the *delegator
+        fiscal number partially hidden* is given.
 
         FIXME: da dove è recuperata l'informazione dell'utente?
 
@@ -203,7 +203,7 @@ paths:
     get:
       operationId: show_delegation
       summary: >-
-        Returns the attributes related to a given delegation 
+        Returns the attributes related to a given delegation
       description: |-
         Returns the full set of attributes related to a selected delegation
         identified by the delegation_id component of the URL
@@ -318,7 +318,7 @@ components:
       description: |-
         Internal server error.
 
-        FIXME: a differenza di 503, 
+        FIXME: a differenza di 503,
                questa risposta di solito non fa parte del contratto ;)
                si può usare `default`
       x-noqa: Risposta OAuth2
@@ -401,7 +401,7 @@ components:
       description: |-
         JSON Object containing the delegation list.
 
-        FIXME: valutare delle properties di contorno 
+        FIXME: valutare delle properties di contorno
                utili anche alla paginazione (count, limit, next, ...)
       properties:
         items:
@@ -498,7 +498,7 @@ components:
               default: https://deleghedigitali.gov.it/
               example: "https://deleghedigitali.gov.it/"
             sub:
-              title: Delegate User Identifier. 
+              title: Delegate User Identifier.
               <<: *TIN
             id:
               type: string
