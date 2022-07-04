@@ -153,7 +153,7 @@ paths:
         offlineAccess: true
         offlineAccessDurationMax: 8640000
 
-  /delegations:
+  /delegations/list:
     get:
       operationId: get-delegation
       summary: Returns the list of the delegations
@@ -195,7 +195,7 @@ paths:
         "500":
           $ref: "#/components/responses/500"
 
-  /delegations/{services}:
+  /delegations/list/{services}:
     get:
       description: "It provides the list of the delegations having the current user as  delegator and related to the services (or class of services) provided by the authenticated RP and identifed from the service component in the URL. For privacy reason, each item contains only the minimum set of information about the delegations, needed by the user to select the delegation he wants to use. Only the delegation identification number and the delegator fiscal number partially hidden is given. "
       operationId: list-delegation-for-service
