@@ -3,7 +3,7 @@ info:
   title: API Sistema Gestione Deleghe (SGD)
   version: "1.0.0"
   description: |-
-    This document contains the specification for the Sistema Gestione Delege API.
+    This document contains the specification for the Sistema Gestione Deleghe API.
 
     The API is modeled around the "Attributo Delega" resource,
     that represents a signed delegation granted from
