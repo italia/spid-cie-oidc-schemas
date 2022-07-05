@@ -2,7 +2,13 @@ openapi: 3.0.3
 info:
   title: API Sistema Gestione Deleghe (SGD)
   version: "1.0.0"
-  description: This document contains the specification for the SGD API
+  description: |-
+    This document contains the specification for the Sistema Gestione Deleghe API.
+
+    The API is modeled around the "Attributo Delega" resource,
+    that represents a signed delegation granted from
+    a citizen to another to operate with respect
+    to one or more services.
   termsOfService: https://deleghedigitali.gov.it/tos
   contact:
     name: Istituto Poligrafico e Zecca dello Stato (IPZS)
@@ -167,7 +173,7 @@ paths:
         (or class of services) provided by the authenticated RP and having
         the current user as delegator.
 
-        For privacy reason, each item contains
+        For privacy reason, each item shows
         only the minimum set of information about the delegations,
         needed by the user to select the delegation he wants to use.
         Only *the delegation identification number* and the *delegator
@@ -199,15 +205,14 @@ paths:
               examples:
                 Delegations:
                   $ref: "#/components/examples/Delegations"
-  /delegations/{id}:
+  /delegations/{delegation_id}:
     get:
       operationId: show_delegation
       summary: >-
-        Returns the attributes related to a given delegation
+        Returns the complete content of a delegation
       description: |-
-        Returns the full set of attributes related to a selected delegation
-        identified by the delegation_id component of the URL
-        as a signed JWT object.
+        Returns a delegation with the full set of related information,
+        in the form of a signed JWT object.
       security:
         - dpopToken: []
           dpopProof: []
@@ -221,7 +226,7 @@ paths:
         - guidelines
       parameters:
         - in: path
-          name: id
+          name: delegation_id
           required: true
           description: Identitier of this delegation as defined by SGD
           schema:
@@ -234,10 +239,10 @@ paths:
           content:
             application/jwt:
               schema:
-                $ref: "#/components/schemas/DelegationAttribute"
+                $ref: '#/components/schemas/DelegationFull'
               examples:
-                DelegationAttributes:
-                  $ref: "#/components/examples/DelegationAttributes"
+                DelegationFull:
+                  $ref: "#/components/examples/DelegationFull"
 
 
 components:
@@ -337,13 +342,7 @@ components:
       name: service_id
       required: false
       schema:
-        type: string
-        format: uuid
-      description:
-        Identifier of the service (or class of services) as given in the
-        online OAS3 catalog of delegable services provided by the
-        authenticated RP. It must be a UUID v4 identifier.
-      example: 21905575-991a-43d5-bede-25f59ae93373
+        $ref: "#/components/schemas/ServiceId"
 
   schemas:
     HTMLDocument:
@@ -362,7 +361,15 @@ components:
       type: string
       description: Identitier of this delegation
       format: uuid4
-    Delegation:
+    ServiceId:
+      type: string
+      format: uuid
+      description:
+        Identifier of the service (or class of services) as given in the
+        online OAS3 catalog of delegable services provided by the
+        authenticated RP. It must be a UUID v4 identifier.
+      example: 21905575-991a-43d5-bede-25f59ae93373
+    DelegationMinimal:
       type: object
       additionalProperties: false
       required:
@@ -382,7 +389,10 @@ components:
           $ref: '#/components/schemas/DelegationId'
         "https://attributes.eid.gov.it/fiscal_number":
           $ref: '#/components/schemas/TINObfuscated'
-
+    Delegation:
+      oneOf:
+      - $ref: '#/components/schemas/DelegationMinimal'
+      - $ref: '#/components/schemas/DelegationFull'
     TIN: &TIN
       type: string
       pattern: ^TIN[A-Z]{2}-[A-Z0-9]+$
@@ -408,7 +418,7 @@ components:
           type: array
           minItems: 1
           items:
-            $ref: '#/components/schemas/Delegation'
+            $ref: '#/components/schemas/DelegationMinimal'
     UnixTimestamp: &UnixTimestamp
       type: integer
       format: int64
@@ -446,13 +456,16 @@ components:
                           problemi di interoperabilità. Le PATCH
                           non devono impattare sull'interfaccia.
 
-    DelegationAttribute:
+    DelegationFull:
       type: object
       description: |-
-        JWT Object representing the "delegation-attribute", containing the
+        JWT Object representing the "delegation attribute", containing the
         identifying information about the delegated and delegating subjects and
-        the characteristics of the delegation. It is transmitted in the standard
-        format (as a base64_url encoded string)
+        the characteristics of the delegation.
+        
+        The `body` property contains a complete representation 
+        of the information provided in Delegation.
+        It is transmitted in the compact form (base64_url encoded string).
       properties:
         header:
           type: object
@@ -484,6 +497,8 @@ components:
         body:
           type: object
           properties:
+            id:
+              $ref: '#/components/schemas/DelegationId'
             jti:
               type: string
               description: Identifier of this token
@@ -500,30 +515,27 @@ components:
             sub:
               title: Delegate User Identifier.
               <<: *TIN
-            id:
-              type: string
-              description: |-
-                Identitier of this delegation as defined in SGD
-                FIXME: c'è una sintasssi da rispettare?
-              example: "1A00001AA21"
             given_name:
               type: string
               description: |-
-                First name of the delgating subject
+                Given name of the delegating subject
 
                 TODO: dev'essere maiuscolo? Stessa domanda per il cognome.
               example: "ALESSANDRO"
             family_name:
               type: string
-              description: Last name of the delgating subject
+              description: Family name of the delgating subject
               example: "BIANCHI"
             https://attributes.eid.gov.it/fiscal_number:
               <<: *TIN
               title: Delegator identifier
             birthdate:
               type: string
-              description: Date of birth of delegating subject
-              example: "01/01/1980"
+              description: |-
+                Date of birth of delegating subject
+
+                FIXME: RFC3339
+              example: "01/01/1980" 
             email:
               type: string
               description: E-mail address of the delegating subject
@@ -541,17 +553,14 @@ components:
               description: UNIX timestamp of when the delegation is valid
             https://sgd.gov.it/delegation_exp:
               <<: *UnixTimestamp
-              description: UNIX timestamp of when the delegation is expired
+              description: UNIX timestamp of when the delegation expires
             https://sgd.gov.it/delegation_los:
               type: array
               description: |-
                 Service (or class of services) identifiers provided
                 by the authenticated RP and contained in the given delegation
               items:
-                type: string
-                format: uuid
-                description: Identifier of the service given as UUID v4
-                example: 18971e49-3c04-4e97-8344-02c01aeee936
+                $ref: "#/components/schemas/ServiceId"
               example:
                 - "18971e49-3c04-4e97-8344-02c01aeee936"
                 - "32fef181-0ae8-4c93-9daa-0cab2b5c0f7e"
@@ -586,7 +595,7 @@ components:
           type: string
 
   examples:
-    DelegationAttributes:
+    DelegationFull:
       summary: A JWS (expressed in expanded syntax.)
       value:
         header:
@@ -622,7 +631,7 @@ components:
           - id: 1A00004AA21
             https://attributes.eid.gov.it/fiscal_number: TINIT-DEFYY*********W
     DelegationsServices:
-      summary: A list of services
+      summary: A list of Delegations related to a specific service
       value:
           - id: 1A00001AA21
             https://attributes.eid.gov.it/fiscal_number: TINIT-RSSMR*********I
