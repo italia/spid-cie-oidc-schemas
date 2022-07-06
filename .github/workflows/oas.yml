@@ -21,15 +21,6 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
-
-      - name: Spectral Linting
-        # You may pin to the exact commit or the version.
-        # uses: stoplightio/spectral-action@60185834e34f8130894eb627a567c7ffe574632f
-        uses: ioggstream/api-oas-checker-action@v0.6.4-italia
-        with:
-          # The pattern describing the file paths to lint with Spectral
-          file_glob: "*.{json,yml,yaml}"
-
-          spectral_ruleset: https://italia.github.io/api-oas-checker/spectral.yml
+      - run: curl https://italia.github.io/api-oas-checker/spectral.yml > .spectral.yml
+      - uses: stoplightio/spectral-action@v0.8.8
