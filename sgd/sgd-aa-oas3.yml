@@ -38,8 +38,11 @@ x-commons:
       $ref: "#/components/responses/404"
     "429":
       $ref: "#/components/responses/429"
-    "500":
-      $ref: "#/components/responses/500"
+    "503":
+      $ref: "#/components/responses/503"
+    default:
+      $ref: "#/components/responses/default"
+
 paths:
   /status:
     get:
@@ -266,8 +269,11 @@ components:
         Token Exchange OAuth2 protocol"
   responses:
     default:
-      $ref: 'https://teamdigitale.github.io/openapi/v0.1.0/definitions.yaml#/components/responses/default'
-
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+      description: Unexpected error
     "400":
       description: |-
         Bad request.
@@ -319,14 +325,14 @@ components:
             error_description:
               The rate limit was exceeded and access is temporarily blocked. It
               is allowed max 50 requests per hour.
-    "500":
+    "503":
       description: |-
-        Internal server error.
-
-        FIXME: a differenza di 503,
-               questa risposta di solito non fa parte del contratto ;)
-               si può usare `default`
+        Temporary unavailable for maintenance or overload. 
+        See https://docs.italia.it/italia/piano-triennale-ict/lg-modellointeroperabilita-docs/it/bozza/doc/04_Raccomandazioni%20di%20implementazione/04_raccomandazioni-tecniche-generali/05_robustezza.html?highlight=robustezza 
       x-noqa: Risposta OAuth2
+      headers:
+        Retry-After:
+          $ref: "#/components/headers/Retry-After"
       content:
         application/json:
           schema:
@@ -336,6 +342,16 @@ components:
             error_description:
               The server is currently unable to handle the request due to
               maintenance or temporary overload.
+  headers:
+    Retry-After:
+      description: |-
+        Retry contacting the endpoint *at least* after seconds.
+        See https://tools.ietf.org/html/rfc7231#section-7.1.3
+      schema:
+        format: int32
+        maximum: 186400
+        minimum: 0
+        type: integer
   parameters:
     service_id:
       in: query
@@ -373,21 +389,16 @@ components:
       type: object
       additionalProperties: false
       required:
-        - id
-        - "https://attributes.eid.gov.it/fiscal_number"
+        - https://deleghedigitali.gov.it/delegation_id
+        - https://deleghedigitali.gov.it/delegator_fiscal_number
       description: |-
         Each delegation is
         identified by the parameter id and the related fiscal number of
         delegating is given partially hidden for privacy reason.
-
-        FIXME: dobbiamo prevedere la possibilità che il codice fiscale
-        del delegante sia in chiaro?
-
-        FIXME: come uso il dato offuscato?
       properties:
-        id:
+        https://deleghedigitali.gov.it/delegation_id:
           $ref: '#/components/schemas/DelegationId'
-        "https://attributes.eid.gov.it/fiscal_number":
+        https://deleghedigitali.gov.it/delegator_fiscal_number:
           $ref: '#/components/schemas/TINObfuscated'
     Delegation:
       oneOf:
@@ -497,8 +508,6 @@ components:
         body:
           type: object
           properties:
-            id:
-              $ref: '#/components/schemas/DelegationId'
             jti:
               type: string
               description: Identifier of this token
@@ -515,46 +524,44 @@ components:
             sub:
               title: Delegate User Identifier.
               <<: *TIN
-            given_name:
+            https://deleghedigitali.gov.it/delegator_given_name:
               type: string
               description: |-
                 Given name of the delegating subject
-
-                TODO: dev'essere maiuscolo? Stessa domanda per il cognome.
-              example: "ALESSANDRO"
-            family_name:
+              example: "Alessandro"
+            https://deleghedigitali.gov.it/delegator_family_name:
               type: string
               description: Family name of the delgating subject
-              example: "BIANCHI"
-            https://attributes.eid.gov.it/fiscal_number:
+              example: "Bianchi"
+            https://deleghedigitali.gov.it/delegator_fiscal_number:
               <<: *TIN
               title: Delegator identifier
-            birthdate:
+            https://deleghedigitali.gov.it/delegator_birthdate:
               type: string
               description: |-
                 Date of birth of delegating subject
-
-                FIXME: RFC3339
-              example: "01/01/1980" 
-            email:
+              example: "1980-01-01" 
+            https://deleghedigitali.gov.it/delegator_email:
               type: string
               description: E-mail address of the delegating subject
               example: "a.bianchi@email.com"
-            phone_number:
+            https://deleghedigitali.gov.it/delegator_phone_number:
               type: string
               description: mobile phone number of the delegating subject
               pattern: ^\+[0-9]+
               example: "+391234567890"
-            https://sgd.gov.it/delegation_iat:
+            https://deleghedigitali.gov.it/delegation_id:
+              $ref: '#/components/schemas/DelegationId'
+            https://deleghedigitali.gov.it/delegation_iat:
               <<: *UnixTimestamp
               description: UNIX timestamp of when the delegation is created
-            https://sgd.gov.it/delegation_nbf:
+            https://deleghedigitali.gov.it/delegation_nbf:
               <<: *UnixTimestamp
               description: UNIX timestamp of when the delegation is valid
-            https://sgd.gov.it/delegation_exp:
+            https://deleghedigitali.gov.it/delegation_exp:
               <<: *UnixTimestamp
               description: UNIX timestamp of when the delegation expires
-            https://sgd.gov.it/delegation_los:
+            https://deleghedigitali.gov.it/delegation_services:
               type: array
               description: |-
                 Service (or class of services) identifiers provided
@@ -565,18 +572,18 @@ components:
                 - "18971e49-3c04-4e97-8344-02c01aeee936"
                 - "32fef181-0ae8-4c93-9daa-0cab2b5c0f7e"
           required:
-            - id
             - iss
             - sub
             - iat
             - jti
-            - given_name
-            - family_name
-            - https://attributes.eid.gov.it/fiscal_number
-            - https://sgd.gov.it/delegation_iat
-            - https://sgd.gov.it/delegation_nbf
-            - https://sgd.gov.it/delegation_exp
-            - https://sgd.gov.it/delegation_los
+            - https://deleghedigitali.gov.it/delegator_given_name
+            - https://deleghedigitali.gov.it/delegator_family_name
+            - https://deleghedigitali.gov.it/delegator_fiscal_number
+            - https://deleghedigitali.gov.it/delegation_id
+            - https://deleghedigitali.gov.it/delegation_iat
+            - https://deleghedigitali.gov.it/delegation_nbf
+            - https://deleghedigitali.gov.it/delegation_exp
+            - https://deleghedigitali.gov.it/delegation_services
         signature:
           type: string
           description: Signature of this JWT
@@ -603,40 +610,40 @@ components:
           kid: "WTNFc0JtSEg2dmptZUdrRHNUVlFJSHV2azZsNFhLY3hQZE5wYV9TanprSQ"
           typ: "JWT"
         body:
-          id: "1A00001AA21"
           iss: "https://deleghedigitali.gov.it/"
           sub: "TINIT-RSSMRA70A0H501I"
           iat: 1650575048
           jti: "2bcbb3b9-cb5b-4ff7-81b0-3da894dd8c62"
-          given_name: "ALESSANDRO"  # FIXME: il nome DEVE essere in maiuscolo?
-          family_name: "BIANCHI"
-          "https://attributes.eid.gov.it/fiscal_number": "TINIT-BNCLSN71H10H501B"
-          birthdate: "01/01/1980"  # FIXME: perché la data di nascita non è in rfc3339 ?
-          email: "a.bianchi@email.com"
-          phone_number: "+391234567890"
-          https://sgd.gov.it/delegation_iat: 1650573248
-          https://sgd.gov.it/delegation_nbf: 1650573248
-          https://sgd.gov.it/delegation_exp: 1650576848
-          https://sgd.gov.it/delegation_los:
+          https://deleghedigitali.gov.it/delegator_given_name: "Alessandro"  
+          https://deleghedigitali.gov.it/delegator_family_name: "Bianchi"
+          https://deleghedigitali.gov.it/delegator_fiscal_number: "TINIT-BNCLSN71H10H501B"
+          https://deleghedigitali.gov.it/delegator_birthdate: "1980-01-01" 
+          https://deleghedigitali.gov.it/delegator_email: "a.bianchi@email.com"
+          https://deleghedigitali.gov.it/delegator_phone_number: "+391234567890"
+          https://deleghedigitali.gov.it/delegation_id: "1A00001AA21"
+          https://deleghedigitali.gov.it/delegation_iat: 1650573248
+          https://deleghedigitali.gov.it/delegation_nbf: 1650573248
+          https://deleghedigitali.gov.it/delegation_exp: 1650576848
+          https://deleghedigitali.gov.it/delegation_services:
             - "18971e49-3c04-4e97-8344-02c01aeee936"
             - "32fef181-0ae8-4c93-9daa-0cab2b5c0f7e"
     Delegations:
       summary: A list of Delegations
       value:
         items:
-          - id: 1A00001AA21
-            https://attributes.eid.gov.it/fiscal_number: TINIT-RSSMR*********I
-          - id: 1A00002AA21
-            https://attributes.eid.gov.it/fiscal_number: TINIT-ABCXX*********Z
-          - id: 1A00004AA21
-            https://attributes.eid.gov.it/fiscal_number: TINIT-DEFYY*********W
+          - https://deleghedigitali.gov.it/delegation_id: 1A00001AA21
+            https://deleghedigitali.gov.it/delegator_fiscal_number: TINIT-RSSMR*********I
+          - https://deleghedigitali.gov.it/delegation_id: 1A00002AA21
+            https://deleghedigitali.gov.it/delegator_fiscal_number: TINIT-ABCXX*********Z
+          - https://deleghedigitali.gov.it/delegation_id: 1A00004AA21
+            https://deleghedigitali.gov.it/delegator_fiscal_number: TINIT-DEFYY*********W
     DelegationsServices:
       summary: A list of Delegations related to a specific service
       value:
-          - id: 1A00001AA21
-            https://attributes.eid.gov.it/fiscal_number: TINIT-RSSMR*********I
-          - id: 1A00002AA21
-            https://attributes.eid.gov.it/fiscal_number: TINIT-ABCXX*********Z
+          - https://deleghedigitali.gov.it/delegation_id: 1A00001AA21
+            https://deleghedigitali.gov.it/delegator_fiscal_number: TINIT-RSSMR*********I
+          - https://deleghedigitali.gov.it/delegation_id: 1A00002AA21
+            https://deleghedigitali.gov.it/delegator_fiscal_number: TINIT-ABCXX*********Z
 
 
 tags:
