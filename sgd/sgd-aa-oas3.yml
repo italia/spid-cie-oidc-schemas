@@ -174,15 +174,13 @@ paths:
       description: |-
         List of the delegations related to the services
         (or class of services) provided by the authenticated RP and having
-        the current user as delegator.
+        the current user as delegated.
 
         For privacy reason, each item shows
         only the minimum set of information about the delegations,
         needed by the user to select the delegation he wants to use.
         Only *the delegation identification number* and the *delegator
         fiscal number partially hidden* is given.
-
-        FIXME: da dove è recuperata l'informazione dell'utente?
 
       parameters:
         - $ref: "#/components/parameters/service_id"
